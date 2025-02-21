@@ -1,0 +1,18 @@
+{
+	"name": "mysql-connector",
+	"config": {
+		"connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+		"tasks.max": "1",
+		"connection.url": "jdbc:mysql://mysql:3306/mydb",
+		"connection.user": "root",
+		"connection.password": "rootpassword",
+		"topic.prefix": "orders_topic_",
+		"table.whitelist": "Orders",
+		"mode": "incrementing",
+		"connection.driver.class.name": "com.mysql.cj.jdbc.Driver",
+		"incrementing.column.name": "OrderID",
+		"validate.non.null": false,
+		"poll.interval.ms": 1000,
+		"db.timezone": "UTC"
+	}
+}
