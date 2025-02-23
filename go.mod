@@ -1,4 +1,4 @@
-module go-kafka-consummer
+module github.com/AbdelilahOu/bahmni-sync-service
 
 go 1.23.2
 
