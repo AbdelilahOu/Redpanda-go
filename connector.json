@@ -1,18 +1,30 @@
 {
-	"name": "mysql-connector",
+	"name": "mysql-cdc-connector",
 	"config": {
 		"connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
 		"tasks.max": "1",
-		"connection.url": "jdbc:mysql://mysql:3306/mydb",
+		"connection.url": "jdbc:mysql://mysql:3306/mydb?useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&useUnicode=true&characterEncoding=UTF-8&useBigDecimal=false&allowPublicKeyRetrieval=true",
 		"connection.user": "root",
 		"connection.password": "rootpassword",
 		"topic.prefix": "orders_topic_",
 		"table.whitelist": "Orders",
 		"mode": "incrementing",
+		"numeric.mapping": "best_fit",
 		"connection.driver.class.name": "com.mysql.cj.jdbc.Driver",
 		"incrementing.column.name": "OrderID",
 		"validate.non.null": false,
 		"poll.interval.ms": 1000,
-		"db.timezone": "UTC"
+		"db.timezone": "UTC",
+		"key.columns": "OrderID",
+		"database.server.id": "1",
+		"database.history.kafka.bootstrap.servers": "kafka:29092",
+		"database.history.kafka.topic": "schema-changes.mydb",
+		"database.history.skip.unparseable.ddl": true,
+		"transforms": "castDecimalToDouble",
+		"transforms.castDecimalToDouble.type": "org.apache.kafka.connect.transforms.Cast$Value",
+		"transforms.castDecimalToDouble.spec": "TotalAmount:float32",
+		"transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+		"transforms.unwrap.drop.tombstones": "false",
+		"transforms.unwrap.delete.handling.mode": "rewrite"
 	}
 }

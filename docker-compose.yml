@@ -18,99 +18,96 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
       interval: 10s
       timeout: 5s
-      retries: 3
-    networks:
-      - mynetwork
-
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - "2181:2181"
-    healthcheck:
-      test: ["CMD", "sh", "-c", "echo ruok | nc localhost 2181"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    networks:
-      - mynetwork
-
-  kafka:
-    image: confluentinc/cp-kafka:7.5.0
-    depends_on:
-      - zookeeper
-      - mysql
-    ports:
-      - "9092:9092"
-      - "29092:29092"
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,HOST://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,HOST://0.0.0.0:9092
-    healthcheck:
-      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    networks:
-      - mynetwork
-
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    depends_on:
-      - kafka
-    ports:
-      - "8080:8080"
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
-    networks:
-      - mynetwork
-
-  connect:
-    image: confluentinc/cp-kafka-connect:7.5.0
-    depends_on:
-      kafka:
-        condition: service_healthy
-      mysql:
-        condition: service_healthy
-    ports:
-      - "8083:8083"
-    environment:
-      CONNECT_BOOTSTRAP_SERVERS: kafka:29092
-      CONNECT_REST_PORT: 8083
-      CONNECT_GROUP_ID: "connect-group"
-      CONNECT_CONFIG_STORAGE_TOPIC: "connect-configs"
-      CONNECT_OFFSET_STORAGE_TOPIC: "connect-offsets"
-      CONNECT_STATUS_STORAGE_TOPIC: "connect-status"
-      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_REST_ADVERTISED_HOST_NAME: "connect"
-      CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
-      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
-      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
-      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
-      # Add these important configs
-      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
-      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
-      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8083/ || exit 1"]
-      interval: 30s
-      timeout: 10s
       retries: 5
       start_period: 15s
     networks:
-      - mynetwork
+      - redpanda_network
+
+  redpanda:
+    command:
+      - redpanda
+      - start
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      # Address the broker advertises to clients that connect to the Kafka API.
+      # Use the internal addresses to connect to the Redpanda brokers'
+      # from inside the same Docker network.
+      # Use the external addresses to connect to the Redpanda brokers'
+      # from outside the Docker network.
+      - --advertise-kafka-addr internal://redpanda:9092,external://localhost:19092
+      - --pandaproxy-addr internal://0.0.0.0:8082,external://0.0.0.0:18082
+      # Address the broker advertises to clients that connect to the HTTP Proxy.
+      - --advertise-pandaproxy-addr internal://redpanda:8082,external://localhost:18082
+      - --schema-registry-addr internal://0.0.0.0:8081,external://0.0.0.0:18081
+      # Redpanda brokers use the RPC API to communicate with each other internally.
+      - --rpc-addr redpanda:33145
+      - --advertise-rpc-addr redpanda:33145
+      # Mode dev-container uses well-known configuration properties for development in containers.
+      - --mode dev-container
+      # Tells Seastar (the framework Redpanda uses under the hood) to use 1 core on the system.
+      - --smp 1
+      - --default-log-level=info
+    image: docker.redpanda.com/redpandadata/redpanda:v24.3.5
+    container_name: redpanda
+    volumes:
+      - redpanda:/var/lib/redpanda/data
+    networks:
+      - redpanda_network
+    ports:
+      - 18081:18081
+      - 18082:18082
+      - 19092:19092
+      - 19644:9644
+    healthcheck:
+      test: ["CMD", "rpk", "cluster", "health"] # Healthcheck using rpk command
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  console:
+    container_name: redpanda-console
+    image: docker.redpanda.com/redpandadata/console:v2.8.2
+    networks:
+      - redpanda_network
+    entrypoint: /bin/sh
+    command: -c 'echo "$$CONSOLE_CONFIG_FILE" > /tmp/config.yml; /app/console'
+    environment:
+      CONFIG_FILEPATH: /tmp/config.yml
+      CONSOLE_CONFIG_FILE: |
+        kafka:
+          brokers: ["redpanda:9092"]
+          schemaRegistry:
+            enabled: true
+            urls: ["http://redpanda:8081"]
+        redpanda:
+          adminApi:
+            enabled: true
+            urls: ["http://redpanda:9644"]
+    ports:
+      - 8080:8080
+    depends_on:
+      - redpanda
+
+  debezium:
+      image: debezium/connect:2.3.0.Final
+      depends_on:
+        - redpanda
+        - mysql
+      ports:
+        - "8083:8083"
+      environment:
+        GROUP_ID: 1
+        CONFIG_STORAGE_TOPIC: connect_configs
+        OFFSET_STORAGE_TOPIC: connect_offsets
+        STATUS_STORAGE_TOPIC: connect_statuses
+        BOOTSTRAP_SERVERS: redpanda:9092
+        KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+        VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+        KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+        VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      networks:
+        - redpanda_network
+
 
 configs:
   mysql_config:
@@ -122,9 +119,10 @@ configs:
       binlog_row_image=FULL
       expire_logs_days=3
 
-volumes:
-  mysql_data:
-
 networks:
-  mynetwork:
+  redpanda_network:
     driver: bridge
+
+volumes:
+  redpanda: null
+  mysql_data:
