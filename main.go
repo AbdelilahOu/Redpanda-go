@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	brokers := []string{"localhost:9092"}
-	topic := "orders_topic_Orders"
+	brokers := []string{"localhost:19092"}
+	topic := "orders.mydb.Orders"
 
 	orderHandler := handlers.NewOrderHandler()
 

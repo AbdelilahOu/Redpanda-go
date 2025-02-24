@@ -71,23 +71,44 @@ func (c *Consumer[T]) ConsumeClaim(session sarama.ConsumerGroupSession, claim sa
 			c.logger.Printf("Message received: topic=%s partition=%d offset=%d",
 				message.Topic, message.Partition, message.Offset)
 
-			c.logger.Println(string(message.Key), message.Headers)
-
-			var event T
+			var event Event[T]
 			if err := json.Unmarshal(message.Value, &event); err != nil {
 				c.logger.Printf("Error unmarshaling message: %v", err)
 				session.MarkMessage(message, "")
 				continue
 			}
 
-			err := c.handler.HandleCreate(&event)
+			var err error
 
-			if err != nil {
-				fmt.Printf("Error handling message: %v", err)
-			}else {
-				session.MarkMessage(message, "")
+			switch event.Payload.Op {
+			case "c":
+				if event.Payload.After != nil {
+					err = c.handler.HandleCreate(event.Payload.After)
+				}
+			case "u":
+				if event.Payload.After != nil {
+					c.logger.Printf("Before update: %+v", event.Payload.Before)
+					err = c.handler.HandleUpdate(event.Payload.After)
+				} else {
+					c.logger.Printf("After update is nil")
+				}
+			case "d":
+				if event.Payload.Before != nil {
+					err = c.handler.HandleDelete(event.Payload.Before)
+				}
+			case "r":
+				if event.Payload.After != nil {
+					err = c.handler.HandleRead(event.Payload.After)
+				}
+			default:
+				c.logger.Printf("Unknown operation type: %s", event.Payload.Op)
 			}
 
+			if err != nil {
+				c.logger.Printf("Error handling operation %s: %v", event.Payload.Op, err)
+			}
+
+			session.MarkMessage(message, "")
 
 		case <-session.Context().Done():
 			c.logger.Println("ConsumeClaim context is done, exiting")
