@@ -1,4 +1,4 @@
-module github.com/AbdelilahOu/bahmni-sync-service
+module github.com/AbdelilahOu/Redpanda-go
 
 go 1.23.2
 

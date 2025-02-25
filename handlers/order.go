@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/AbdelilahOu/bahmni-sync-service/types"
+	"github.com/AbdelilahOu/Redpanda-go/types"
 )
 
 type OrderHandler struct {

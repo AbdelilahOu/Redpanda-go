@@ -18,13 +18,13 @@ This service implements a consumer that listens to database changes (Create, Upd
 
 ```plaintext
 .
-├── consumer/           # Consumer implementation
-├── handlers/           # Event handlers
-├── types/             # Type definitions
-├── connector.json     # Debezium connector configuration
-├── docker-compose.yml # Docker services configuration
-├── go.mod            # Go module file
-└── main.go           # Application entry point
+├── cmd/main.go           # Application entry point
+├── consumer/             # Consumer implementation
+├── handlers/             # Event handlers
+├── types/                # Type definitions
+├── connector.json        # Debezium connector configuration
+├── docker-compose.yml    # Docker services configuration
+└── go.mod                # Go module file
 ```
 
 ## Setup and Installation
@@ -46,7 +46,7 @@ curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json
 
 4. Run the application:
 ```bash
-go run main.go
+go run cmd/main.go
 ```
 
 ## Infrastructure Components

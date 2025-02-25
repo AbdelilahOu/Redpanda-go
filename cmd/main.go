@@ -4,9 +4,9 @@ import (
 	"log"
 	"sync"
 
-	"github.com/AbdelilahOu/bahmni-sync-service/consumer"
-	"github.com/AbdelilahOu/bahmni-sync-service/handlers"
-	"github.com/AbdelilahOu/bahmni-sync-service/types"
+	"github.com/AbdelilahOu/Redpanda-go/consumer"
+	"github.com/AbdelilahOu/Redpanda-go/handlers"
+	"github.com/AbdelilahOu/Redpanda-go/types"
 )
 
 func main() {
