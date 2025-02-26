@@ -41,7 +41,11 @@ docker-compose up -d
 
 3. Create the Debezium connector:
 ```bash
-curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d @connector.json
+curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d @orders-connector.json
+```
+
+```bash
+curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d @customers-connector.json
 ```
 
 4. Run the application:
