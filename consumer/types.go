@@ -1,14 +1,13 @@
 package consumer
 
-
 type Event[T any] struct {
-	Schema  Schema  `json:"schema"`
+	Schema  Schema     `json:"schema"`
 	Payload Payload[T] `json:"payload"`
 }
 
 type Payload[T any] struct {
-	Before      *T      `json:"before"`
-	After       *T      `json:"after"`
+	Before      *T          `json:"before"`
+	After       *T          `json:"after"`
 	Source      Source      `json:"source"`
 	Op          string      `json:"op"`
 	TsMs        int64       `json:"ts_ms"`
@@ -23,7 +22,7 @@ type Schema struct {
 		Optional bool   `json:"optional"`
 	} `json:"fields"`
 	Optional bool   `json:"optional"`
-	Name    string  `json:"name"`
+	Name     string `json:"name"`
 }
 
 type Source struct {

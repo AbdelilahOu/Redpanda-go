@@ -74,7 +74,6 @@ func (c *Consumer[T]) ConsumeClaim(session sarama.ConsumerGroupSession, claim sa
 			var event Event[T]
 			if err := json.Unmarshal(message.Value, &event); err != nil {
 				c.logger.Printf("Error unmarshaling message: %v", err)
-				session.MarkMessage(message, "")
 				continue
 			}
 
@@ -106,6 +105,7 @@ func (c *Consumer[T]) ConsumeClaim(session sarama.ConsumerGroupSession, claim sa
 
 			if err != nil {
 				c.logger.Printf("Error handling operation %s: %v", event.Payload.Op, err)
+				continue
 			}
 
 			session.MarkMessage(message, "")
@@ -160,11 +160,10 @@ func (c *Consumer[T]) Start() error {
 			c.logger.Println("Terminating: via signal")
 			cancel()
 		case <-ctx.Done():
-			// Context is already cancelled
 		}
 	}()
 
-	<-ctx.Done() // Wait for either signal or internal termination
+	<-ctx.Done()
 	c.logger.Println("Terminating...")
 
 	c.logger.Println("Waiting for consumer goroutine to finish")

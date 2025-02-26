@@ -1,20 +1,20 @@
 {
-	"name": "openmrs-orders-connector",
+	"name": "customers-connector",
 	"config": {
 		"connector.class": "io.debezium.connector.mysql.MySqlConnector",
 		"database.user": "root",
-		"database.server.id": "001",
+		"database.server.id": "002",
 		"tasks.max": "1",
 		"schema.history.internal.kafka.bootstrap.servers": "redpanda:9092",
 		"database.port": "3306",
 		"include.schema.changes": "true",
-		"topic.prefix": "orders",
+		"topic.prefix": "customers",
 		"decimal.handling.mode": "double",
-		"schema.history.internal.kafka.topic": "schema-changes.orders",
+		"schema.history.internal.kafka.topic": "schema-changes.customers",
 		"database.hostname": "mysql",
 		"database.password": "rootpassword",
-		"name": "openmrs-orders-connector",
-		"table.include.list": "mydb.Orders",
+		"name": "customers-connector",
+		"table.include.list": "mydb.Customers",
 		"database.include.list": "mydb"
 	}
 }

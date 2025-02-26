@@ -11,9 +11,9 @@ import (
 
 func main() {
 	brokers := []string{"localhost:19092"}
-	topic := "orders.mydb.Orders"
 
 	orderHandler := handlers.NewOrderHandler()
+	customerHandler := handlers.NewCustomerHandler()
 
 	var wg sync.WaitGroup
 
@@ -23,15 +23,33 @@ func main() {
 		consumer, err := consumer.NewConsumer[types.Order](
 			brokers,
 			"orders-group",
-			[]string{topic},
+			[]string{"orders.mydb.Orders"},
 			&orderHandler,
 		)
 		if err != nil {
-			log.Fatalf("Error creating logging consumer: %v", err)
+			log.Fatalf("Error creating orders consumer: %v", err)
 		}
 
 		if err := consumer.Start(); err != nil {
-			log.Printf("Error running logging consumer: %v", err)
+			log.Printf("Error running orders consumer: %v", err)
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		consumer, err := consumer.NewConsumer[types.Customer](
+			brokers,
+			"customers-group",
+			[]string{"customers.mydb.Customers"},
+			&customerHandler,
+		)
+		if err != nil {
+			log.Fatalf("Error creating customers consumer: %v", err)
+		}
+
+		if err := consumer.Start(); err != nil {
+			log.Printf("Error running customers consumer: %v", err)
 		}
 	}()
 
