@@ -17,38 +17,38 @@ func NewCustomerHandler() CustomerHandler {
 	}
 }
 
-func (h *CustomerHandler) HandleCreate(order *types.Customer) error {
-	if order == nil {
+func (h *CustomerHandler) HandleCreate(customer *types.Customer) error {
+	if customer == nil {
 		h.logger.Println("Customer is nil in HandleCreate")
 		return nil
 	}
-	h.logger.Printf("Customer created: %+v", order)
+	h.logger.Printf("Customer created: %+v", customer)
 	return nil
 }
 
-func (h *CustomerHandler) HandleUpdate(order *types.Customer) error {
-	if order == nil {
+func (h *CustomerHandler) HandleUpdate(customer *types.Customer) error {
+	if customer == nil {
 		h.logger.Println("Customer is nil in HandleUpdate")
 		return nil
 	}
-	h.logger.Printf("Customer updated: %+v", order)
+	h.logger.Printf("Customer updated: %+v", customer)
 	return nil
 }
 
-func (h *CustomerHandler) HandleDelete(order *types.Customer) error {
-	if order == nil {
+func (h *CustomerHandler) HandleDelete(customer *types.Customer) error {
+	if customer == nil {
 		h.logger.Println("Customer is nil in HandleDelete")
 		return nil
 	}
-	h.logger.Printf("Customer deleted: %+v", order)
+	h.logger.Printf("Customer deleted: %+v", customer)
 	return nil
 }
 
-func (h *CustomerHandler) HandleRead(order *types.Customer) error {
-	if order == nil {
+func (h *CustomerHandler) HandleRead(customer *types.Customer) error {
+	if customer == nil {
 		h.logger.Println("Customer is nil in HandleRead")
 		return nil
 	}
-	h.logger.Printf("Customer read: %+v", order)
+	h.logger.Printf("Customer read: %+v", customer)
 	return nil
 }
