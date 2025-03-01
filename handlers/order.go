@@ -13,7 +13,7 @@ type OrderHandler struct {
 
 func NewOrderHandler() OrderHandler {
 	return OrderHandler{
-		logger: log.New(os.Stdout, "logging-handler: ", log.LstdFlags),
+		logger: log.New(os.Stdout, "order-handler: ", log.LstdFlags),
 	}
 }
 

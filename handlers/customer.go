@@ -13,7 +13,7 @@ type CustomerHandler struct {
 
 func NewCustomerHandler() CustomerHandler {
 	return CustomerHandler{
-		logger: log.New(os.Stdout, "logging-handler: ", log.LstdFlags),
+		logger: log.New(os.Stdout, "customer-handler: ", log.LstdFlags),
 	}
 }
 
