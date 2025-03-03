@@ -24,7 +24,7 @@ type Consumer[T any] struct {
 }
 
 func NewConsumer[T any](brokers []string, groupID string, topics []string, handler HandlersInterface[T]) (*Consumer[T], error) {
-	logger := log.New(os.Stdout, fmt.Sprintf("kafka-consumer-%s: ", groupID), log.LstdFlags)
+	logger := log.New(os.Stdout, fmt.Sprintf("consumer-%s: ", groupID), log.LstdFlags)
 
 	config := sarama.NewConfig()
 	config.Consumer.Group.Rebalance.Strategy = sarama.NewBalanceStrategyRoundRobin()
