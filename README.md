@@ -21,8 +21,9 @@ This service implements a consumer that listens to database changes (Create, Upd
 ├── cmd/main.go           # Application entry point
 ├── consumer/             # Consumer implementation
 ├── handlers/             # Event handlers
+├── scripts/init.sql      # Database schema and seed
 ├── types/                # Type definitions
-├── connector.json        # Debezium connector configuration
+├── *-connector.json      # Debezium connector configuration
 ├── docker-compose.yml    # Docker services configuration
 └── go.mod                # Go module file
 ```
@@ -30,16 +31,19 @@ This service implements a consumer that listens to database changes (Create, Upd
 ## Setup and Installation
 
 1. Clone the repository
+
 ```bash
 git clone https://github.com/AbdelilahOu/Redpanda-go.git
 ```
 
 2. Start the infrastructure services:
+
 ```bash
 docker-compose up -d
 ```
 
 3. Create the Debezium connector:
+
 ```bash
 curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d @orders-connector.json
 ```
@@ -49,6 +53,7 @@ curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json
 ```
 
 4. Run the application:
+
 ```bash
 go run cmd/main.go
 ```
@@ -65,6 +70,7 @@ go run cmd/main.go
 ### Debezium Connector
 
 The connector is configured to:
+
 - Monitor the `mydb.Orders` table
 - Publish events to the `orders.mydb.Orders` topic
 - Use JSON format for messages without schemas
@@ -73,6 +79,7 @@ The connector is configured to:
 ### Consumer Configuration
 
 The Go consumer is configured to:
+
 - Connect to Redpanda broker at `localhost:19092`
 - Use consumer group `orders-group`
 - Process messages from the `orders.mydb.Orders` topic
@@ -81,6 +88,7 @@ The Go consumer is configured to:
 ## Event Handling
 
 The service implements handlers for different database operations:
+
 - Create (`c`): Process new record creation
 - Update (`u`): Handle record updates
 - Delete (`d`): Process record deletions
