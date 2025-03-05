@@ -14,13 +14,12 @@ import (
 	"github.com/IBM/sarama"
 )
 
-
 type Consumer[T any] struct {
-	ready    chan bool
-	group    sarama.ConsumerGroup
-	topics   []string
-	logger   *log.Logger
-	handler  HandlersInterface[T]
+	ready   chan bool
+	group   sarama.ConsumerGroup
+	topics  []string
+	logger  *log.Logger
+	handler HandlersInterface[T]
 }
 
 func NewConsumer[T any](brokers []string, groupID string, topics []string, handler HandlersInterface[T]) (*Consumer[T], error) {
@@ -38,11 +37,11 @@ func NewConsumer[T any](brokers []string, groupID string, topics []string, handl
 	}
 
 	consumer := &Consumer[T]{
-		ready:    make(chan bool),
-		group:    group,
-		topics:   topics,
-		logger:   logger,
-		handler:  handler,
+		ready:   make(chan bool),
+		group:   group,
+		topics:  topics,
+		logger:  logger,
+		handler: handler,
 	}
 
 	return consumer, nil
