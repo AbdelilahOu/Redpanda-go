@@ -31,6 +31,15 @@ func NewConsumer[T any](brokers []string, groupID string, topics []string, handl
 	config.Consumer.Group.Session.Timeout = 20 * time.Second
 	config.Consumer.Group.Heartbeat.Interval = 6 * time.Second
 
+	config.Consumer.Retry.Backoff = 2 * time.Second
+
+	config.Net.MaxOpenRequests = 5
+	config.Net.DialTimeout = 30 * time.Second
+	config.Net.ReadTimeout = 30 * time.Second
+	config.Net.WriteTimeout = 30 * time.Second
+
+	config.Consumer.Return.Errors = true
+
 	group, err := sarama.NewConsumerGroup(brokers, groupID, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create consumer group: %v", err)
@@ -46,7 +55,6 @@ func NewConsumer[T any](brokers []string, groupID string, topics []string, handl
 
 	return consumer, nil
 }
-
 func (c *Consumer[T]) Setup(sarama.ConsumerGroupSession) error {
 	c.logger.Println("Consumer Setup")
 	close(c.ready)
