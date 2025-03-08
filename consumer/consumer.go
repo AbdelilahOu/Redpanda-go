@@ -20,6 +20,7 @@ type Consumer[T any] struct {
 	topics  []string
 	logger  *log.Logger
 	handler HandlersInterface[T]
+	retries int
 }
 
 func NewConsumer[T any](brokers []string, groupID string, topics []string, handler HandlersInterface[T]) (*Consumer[T], error) {
@@ -28,6 +29,9 @@ func NewConsumer[T any](brokers []string, groupID string, topics []string, handl
 	config := sarama.NewConfig()
 	config.Consumer.Group.Rebalance.Strategy = sarama.NewBalanceStrategyRoundRobin()
 	config.Consumer.Offsets.Initial = sarama.OffsetOldest
+	config.Consumer.Offsets.AutoCommit.Enable = true
+	config.Consumer.Offsets.AutoCommit.Interval = 1 * time.Second
+	config.Consumer.Offsets.Retry.Max = 4
 	config.Consumer.Group.Session.Timeout = 20 * time.Second
 	config.Consumer.Group.Heartbeat.Interval = 6 * time.Second
 
@@ -51,6 +55,7 @@ func NewConsumer[T any](brokers []string, groupID string, topics []string, handl
 		topics:  topics,
 		logger:  logger,
 		handler: handler,
+		retries: 0,
 	}
 
 	return consumer, nil
@@ -60,12 +65,10 @@ func (c *Consumer[T]) Setup(sarama.ConsumerGroupSession) error {
 	close(c.ready)
 	return nil
 }
-
 func (c *Consumer[T]) Cleanup(sarama.ConsumerGroupSession) error {
 	c.logger.Println("Consumer Cleanup")
 	return nil
 }
-
 func (c *Consumer[T]) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for {
 		select {
@@ -111,8 +114,14 @@ func (c *Consumer[T]) ConsumeClaim(session sarama.ConsumerGroupSession, claim sa
 			}
 
 			if err != nil {
-				c.logger.Printf("Error handling operation %s: %v", event.Payload.Op, err)
-				continue
+				c.retries = c.retries + 1
+				c.logger.Printf("Error handling operation %s: %v for the %d TH time", event.Payload.Op, err, c.retries)
+				if c.retries > 3 {
+					c.retries = 0
+					continue
+				}
+				time.Sleep(time.Duration(c.retries) * time.Second)
+				return err
 			}
 
 			session.MarkMessage(message, "")
@@ -123,7 +132,6 @@ func (c *Consumer[T]) ConsumeClaim(session sarama.ConsumerGroupSession, claim sa
 		}
 	}
 }
-
 func (c *Consumer[T]) Start() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
