@@ -6,7 +6,6 @@ import (
 
 	"github.com/AbdelilahOu/Redpanda-go/consumer"
 	"github.com/AbdelilahOu/Redpanda-go/handlers"
-	"github.com/AbdelilahOu/Redpanda-go/types"
 )
 
 func main() {
@@ -20,7 +19,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		consumer, err := consumer.NewConsumer[types.Order](
+		consumer, err := consumer.NewConsumer(
 			brokers,
 			"orders-group",
 			[]string{"orders.mydb.Orders"},
@@ -38,7 +37,7 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		consumer, err := consumer.NewConsumer[types.Customer](
+		consumer, err := consumer.NewConsumer(
 			brokers,
 			"customers-group",
 			[]string{"customers.mydb.Customers"},
