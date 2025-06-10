@@ -1,0 +1,24 @@
+input:
+  label: "mysql-cdc"
+  mysql_cdc:
+    dsn: "root:rootpassword@tcp(mysql:3306)/mydb"
+    tables: [Customers]
+    checkpoint_cache: ""
+    checkpoint_key: mysql_binlog_position
+    snapshot_max_batch_size: 1000
+    stream_snapshot: false
+    auto_replay_nacks: true
+    checkpoint_limit: 1024
+    batching:
+      count: 0
+      byte_size: 0
+      period: ""
+      check: ""
+
+output:
+  kafka:
+    addresses:
+      - "redpanda:9092"
+    topic: "customers.mydb.Customers"
+
+    max_in_flight: 1

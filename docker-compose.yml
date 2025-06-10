@@ -90,6 +90,22 @@ services:
     depends_on:
       - redpanda
 
+  # redpanda-connect:
+  #   image: docker.redpanda.com/redpandadata/connect
+  #   container_name: redpanda-connect
+  #   command:
+  #     - run
+  #     - /etc/redpanda-connect/config.yaml
+  #   volumes:
+  #     - ./connectors/config.yaml:/etc/redpanda-connect/config.yaml
+  #   networks:
+  #     - redpanda_network
+  #   depends_on:
+  #     redpanda:
+  #       condition: service_healthy
+  #     mysql:
+  #       condition: service_healthy
+
   connect:
     image: debezium/connect:2.3.0.Final
     depends_on:
